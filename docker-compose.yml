@@ -1,0 +1,12 @@
+---
+version: '2'
+
+services:
+  jsonapi-server:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      - 'ARTIFACTORY_PW=${ARTIFACTORY_PW}'
+      - 'PROJECT_NAME=${CIRCLE_PROJECT_REPONAME}'
+      - 'TOWER_PASSWORD=${TOWER_PASSWORD}'

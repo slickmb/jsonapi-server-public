@@ -1,0 +1,60 @@
+# Using CircleCI 2.0
+---
+version: 2
+executortype: machine
+jobs:
+  build:
+    working_directory: ~/templatenode
+    steps:
+      - checkout
+      - run:
+          name: docker login
+          command: docker login -e dev@expel.io -u expelcircleci -p $ARTIFACTORY_PW expel-docker-dev.jfrog.io
+      - run:
+          name: run tests
+          command: |
+            ./ci.sh test
+      - run:
+          name: generate package.json version numbers
+          command: |
+            ./ci.sh update_package_version
+      - run:
+          name: build rpm
+          command: |
+            ./ci.sh build_rpm
+            docker-compose run --name rpm-install $CIRCLE_PROJECT_REPONAME install
+
+      - deploy:
+          name: deploy with tag or master branch
+          command: |
+            if [[ "${CIRCLE_TAG}" =~ [/.*/] || "${CIRCLE_BRANCH}" == "master" ]]; then
+              # Commit the RPM-installed container into an image and push to artifactory
+              docker commit \
+                -c 'WORKDIR /opt/templatenode' \
+                -c 'ENTRYPOINT ["/usr/bin/nodemon"]' \
+                -c 'CMD ["/opt/templatenode/bin/www", "-V", "/opt/templatenode"]' \
+                rpm-install $CIRCLE_PROJECT_REPONAME
+              ./docker_tag_and_push.sh $CIRCLE_PROJECT_REPONAME expel-docker-dev.jfrog.io expelcircleci $ARTIFACTORY_PW
+              # Push the RPM to artifactory and kick Tower to autodeploy to staging
+              ./ci.sh publish_rpm
+              ./ci.sh autodeploy
+
+              if [[ "${CIRCLE_TAG}" =~ [/.*/] ]]; then
+                # Remove the RPM so that we don't accidentally pack it into an npm module.
+                find . -name "*.rpm" -delete
+                # For tagged releases, before we do anything, let's build and publish the node module
+                ./ci.sh publish_npm
+              fi
+
+              if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+                # Kick off a docker-world build to do some smoke testing of this build
+                curl -X POST -u $CIRCLE_API_TOKEN: https://circleci.com/api/v1.1/project/github/expel-io/docker-world
+              fi
+            fi
+# This can be deleted once $CIRCLE_TAG works in CircleCI 2.0
+# Check https://discuss.circleci.com/t/build-on-tag/9864/20 for updates on this issue
+deployment:
+  tagging_deployment_workaround:
+    tag: /.*/
+    commands:
+      - echo "make tags run in 2.0"

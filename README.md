@@ -1,6 +1,32 @@
+# jsonapi-server (expel)
+Expel fork of jsonapi-server
+
+*NOTE: DO NOT TAG OR PUBLISH RELEASES OF THIS REPO.*  All tags should come from the public repo.  If referencing this repo from 
+a package.json in another project, use the version tag used by the latest master build.
+
+e.g.
+
+```json
+{
+  "dependencies": {
+    "jsonapi-server": "3.0.3-4-abefg123"
+  }
+}
+```
+
+This is a little bit of a hassle in regards to ingesting updates from this repo, but it is necessary in order
+to avoid conflicting with any tags the owner of the public repo (holidayextras) adds.
+
+## Build Status
+[![CircleCI](https://circleci.com/gh/expel-io/jsonapi-server.svg?style=svg&circle-token=6a9ab4d580e516a43d003e4998291e48b233cfb6)](https://circleci.com/gh/expel-io/jsonapi-server)
+
+
+# jsonapi-server Original Readme
+
 [![Build Status](https://travis-ci.org/holidayextras/jsonapi-server.svg?branch=master)](https://travis-ci.org/holidayextras/jsonapi-server)
 [![npm version](https://badge.fury.io/js/jsonapi-server.svg)](http://badge.fury.io/js/jsonapi-server)
 [![Dependencies Status](https://david-dm.org/holidayextras/jsonapi-server.svg)](https://david-dm.org/holidayextras/jsonapi-server)
+
 
 # jsonapi-server
 
